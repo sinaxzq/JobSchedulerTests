@@ -8,23 +8,21 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 find_package(Threads REQUIRED)
 
-add_library(job_scheduler
+add_library(JobScheduler
     src/ThreadPool.cpp
     src/JobScheduler.cpp
 )
 
-target_include_directories(job_scheduler PUBLIC include)
+target_include_directories(JobScheduler PUBLIC include)
+target_link_libraries(JobScheduler PUBLIC Threads::Threads)
 
-target_link_libraries(job_scheduler PUBLIC Threads::Threads)
-
-add_executable(job_scheduler_tests
+add_executable(JobSchedulerTests
     tests/main.cpp
     tests/ThreadPoolTests.cpp
     tests/JobSchedulerTests.cpp
 )
 
-target_link_libraries(job_scheduler_tests PRIVATE job_scheduler)
+target_link_libraries(JobSchedulerTests PRIVATE JobScheduler)
 
 enable_testing()
-
-add_test(NAME job_scheduler_tests COMMAND job_scheduler_tests)
+add_test(NAME JobSchedulerTests COMMAND JobSchedulerTests)
