@@ -11,7 +11,8 @@
 #include <thread>
 #include <type_traits>
 
-class JobScheduler {
+class JobScheduler
+{
 public:
     explicit JobScheduler(int workerCount);
     ~JobScheduler();
@@ -25,18 +26,14 @@ public:
     void shutdown();
 
     template <typename Func>
-    auto scheduleAfter(
-        std::chrono::milliseconds delay ,
-        Func task
-    ) -> std::future<std::invoke_result_t<Func>>
+    auto scheduleAfter(std::chrono::milliseconds delay, Func task)
+        -> std::future<std::invoke_result_t<Func>>
     {
         using Result = std::invoke_result_t<Func>;
 
         auto runAt = std::chrono::steady_clock::now() + delay;
 
-        auto packagedTask = std::make_shared<std::packaged_task<Result()>>(
-            std::move(task)
-        );
+        auto packagedTask = std::make_shared<std::packaged_task<Result()>>(std::move(task));
 
         auto future = packagedTask->get_future();
 
@@ -48,10 +45,7 @@ public:
                 throw std::runtime_error("Cannot schedule task after scheduler shutdown");
             }
 
-            jobs_.push(ScheduledJob{
-                runAt,
-                [packagedTask](){(*packagedTask)();}
-            });
+            jobs_.push(ScheduledJob{runAt, [packagedTask]() { (*packagedTask)(); }});
         }
 
         cv_.notify_one();
@@ -60,16 +54,15 @@ public:
     }
 
 private:
-    struct ScheduledJob {
+    struct ScheduledJob
+    {
         std::chrono::steady_clock::time_point runAt;
         std::function<void()> task;
     };
 
-    struct CompareByRunAt {
-        bool operator()(
-            const ScheduledJob& left,
-            const ScheduledJob& right
-        ) const;
+    struct CompareByRunAt
+    {
+        bool operator()(const ScheduledJob& left, const ScheduledJob& right) const;
     };
 
     void schedulerLoop();
@@ -77,11 +70,7 @@ private:
     ThreadPool pool_;
     std::thread schedulerThread_;
 
-    std::priority_queue<
-        ScheduledJob,
-        std::vector<ScheduledJob>,
-        CompareByRunAt
-    > jobs_;
+    std::priority_queue<ScheduledJob, std::vector<ScheduledJob>, CompareByRunAt> jobs_;
 
     std::mutex mutex_;
     std::condition_variable cv_;

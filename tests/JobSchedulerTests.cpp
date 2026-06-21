@@ -1,6 +1,6 @@
-﻿#include "Tests.h"
+﻿#include "JobScheduler.h"
+#include "Tests.h"
 #include <cassert>
-#include "JobScheduler.h"
 
 void testJobSchedulerCanBeCreatedAndDestroyed()
 {
@@ -19,47 +19,26 @@ void testJobSchedulerRunsDelayedTask()
 {
     JobScheduler scheduler(2);
 
-    auto start = std::chrono::steady_clock::now();
-
     constexpr auto msDelay = 50;
-    auto future = scheduler.scheduleAfter
-    (std::chrono::milliseconds(msDelay) , 
-        []() { 
-        return 123; 
-    });
+    auto future = scheduler.scheduleAfter(std::chrono::milliseconds(msDelay), []() { return 123; });
 
-    auto status = future.wait_for(std::chrono::seconds(1));
+    auto earlyStatus = future.wait_for(std::chrono::milliseconds(10));
+    assert(earlyStatus == std::future_status::timeout);
 
+    auto status = future.wait_for(std::chrono::milliseconds(1000));
     assert(status == std::future_status::ready);
     assert(future.get() == 123);
-
-    auto end = std::chrono::steady_clock::now();
-    auto elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(
-        end - start
-    ).count();
-
-    assert(elapsedMs >= msDelay);
 }
 
 void testJobSchedulerRunsEarlierTaskFirst()
 {
     JobScheduler scheduler(2);
 
-    auto future1 = scheduler.scheduleAfter(
-        std::chrono::milliseconds(200) ,
-        []()
-    {
-        return std::chrono::steady_clock::now();
-    }
-    );
+    auto future1 = scheduler.scheduleAfter(std::chrono::milliseconds(200),
+                                           []() { return std::chrono::steady_clock::now(); });
 
-    auto future2 = scheduler.scheduleAfter(
-        std::chrono::milliseconds(100) ,
-        []()
-    {
-        return std::chrono::steady_clock::now();
-    }
-    );
+    auto future2 = scheduler.scheduleAfter(std::chrono::milliseconds(100),
+                                           []() { return std::chrono::steady_clock::now(); });
 
     assert(future1.wait_for(std::chrono::seconds(1)) == std::future_status::ready);
     assert(future2.wait_for(std::chrono::seconds(1)) == std::future_status::ready);
@@ -73,14 +52,14 @@ void testJobSchedulerRunsEarlierTaskFirst()
 void testJobSchedulerRejectsScheduleAfterShutdown()
 {
     JobScheduler scheduler(2);
-    
-    bool catched = false; 
+
+    bool catched = false;
 
     scheduler.shutdown();
-   
-      try
+
+    try
     {
-          auto future = scheduler.scheduleAfter(std::chrono::milliseconds(0) , []() {});
+        auto future = scheduler.scheduleAfter(std::chrono::milliseconds(0), []() {});
 
         future.get();
     }

@@ -9,9 +9,12 @@ void testThreadPoolRejectsZeroWorkers()
 {
     bool caught = false;
 
-    try {
+    try
+    {
         ThreadPool pool(0);
-    } catch (const std::invalid_argument&) {
+    }
+    catch (const std::invalid_argument&)
+    {
         caught = true;
     }
 
@@ -22,9 +25,7 @@ void testThreadPoolRunsSubmittedTask()
 {
     ThreadPool pool(2);
 
-    auto future = pool.submit([]() {
-        return 42;
-    });
+    auto future = pool.submit([]() { return 42; });
 
     assert(future.get() == 42);
 }
@@ -36,4 +37,3 @@ void testThreadPoolShutdownIsIdempotent()
     pool.shutdown();
     pool.shutdown();
 }
-

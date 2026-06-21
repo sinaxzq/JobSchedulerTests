@@ -5,16 +5,16 @@
 
 ThreadPool::ThreadPool(int workerCount)
 {
-    if (workerCount <= 0) {
+    if (workerCount <= 0)
+    {
         throw std::invalid_argument("workerCount must be positive");
     }
 
     workers_.reserve(static_cast<std::size_t>(workerCount));
 
-    for (int i = 0; i < workerCount; ++i) {
-        workers_.emplace_back([this]() {
-            workerLoop();
-        });
+    for (int i = 0; i < workerCount; ++i)
+    {
+        workers_.emplace_back([this]() { workerLoop(); });
     }
 }
 
@@ -28,7 +28,8 @@ void ThreadPool::shutdown()
     {
         std::lock_guard<std::mutex> lock(mutex_);
 
-        if (stopping_) {
+        if (stopping_)
+        {
             return;
         }
 
@@ -37,8 +38,10 @@ void ThreadPool::shutdown()
 
     cv_.notify_all();
 
-    for (auto& worker : workers_) {
-        if (worker.joinable()) {
+    for (auto& worker : workers_)
+    {
+        if (worker.joinable())
+        {
             worker.join();
         }
     }
@@ -46,17 +49,17 @@ void ThreadPool::shutdown()
 
 void ThreadPool::workerLoop()
 {
-    while (true) {
+    while (true)
+    {
         std::function<void()> task;
 
         {
             std::unique_lock<std::mutex> lock(mutex_);
 
-            cv_.wait(lock, [this]() {
-                return stopping_ || !tasks_.empty();
-            });
+            cv_.wait(lock, [this]() { return stopping_ || !tasks_.empty(); });
 
-            if (stopping_ && tasks_.empty()) {
+            if (stopping_ && tasks_.empty())
+            {
                 return;
             }
 

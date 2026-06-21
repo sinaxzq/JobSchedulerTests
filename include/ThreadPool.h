@@ -12,7 +12,8 @@
 #include <utility>
 #include <vector>
 
-class ThreadPool {
+class ThreadPool
+{
 public:
     explicit ThreadPool(int workerCount);
     ~ThreadPool();
@@ -25,34 +26,29 @@ public:
 
     void shutdown();
 
-    template <typename Func>
-    auto submit(Func task) -> std::future<std::invoke_result_t<Func>>
+    template <typename Func> auto submit(Func task) -> std::future<std::invoke_result_t<Func>>
     {
         using Result = std::invoke_result_t<Func>;
 
-        auto packagedTask = std::make_shared<std::packaged_task<Result()>>(
-            std::move(task)
-        );
+        auto packagedTask = std::make_shared<std::packaged_task<Result()>>(std::move(task));
 
         auto future = packagedTask->get_future();
 
         {
             std::lock_guard<std::mutex> lock(mutex_);
 
-            if (stopping_) {
+            if (stopping_)
+            {
                 throw std::runtime_error("ThreadPool is stopped");
             }
 
-            tasks_.push([packagedTask]() {
-                (*packagedTask)();
-            });
+            tasks_.push([packagedTask]() { (*packagedTask)(); });
         }
 
         cv_.notify_one();
 
         return future;
     }
-
 
 private:
     void workerLoop();
