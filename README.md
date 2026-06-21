@@ -1,26 +1,21 @@
 ﻿# JobSchedulerLab
 
-Учебный C++17 проект: in-memory Job Queue / Task Scheduler.
+[![CMake CI](https://github.com/sinaxzq/JobSchedulerTests/actions/workflows/ci.yml/badge.svg)](https://github.com/sinaxzq/JobSchedulerTests/actions/workflows/ci.yml)
 
-## v1 scope
+A small C++ job scheduling project built around a thread pool, delayed task execution, futures, and automated tests.
 
-- fixed-size ThreadPool
-- delayed jobs
-- future-based result retrieval
-- graceful shutdown
-- basic concurrency tests
+## What it demonstrates
 
-## Not in v1
-
-- cron syntax
-- persistence
-- distributed queue
-- retries
-- cancellation
-- HTTP API
-- priority levels
+* Thread pool based task execution
+* Delayed job scheduling
+* `std::future` result handling
+* Graceful shutdown behavior
+* CMake project structure
+* Automated Windows CI with GitHub Actions
 
 ## Build
+
+### Visual Studio / Windows
 
 ```powershell
 cmake -S . -B build
@@ -28,6 +23,10 @@ cmake --build build --config Debug
 ctest --test-dir build -C Debug --output-on-failure
 ```
 
-## Current learning target
+### Single-config generators
 
-Understand ownership, lifetime, shared state, condition_variable waiting, and shutdown semantics.
+```bash
+cmake -S . -B build
+cmake --build build
+ctest --test-dir build --output-on-failure
+```
